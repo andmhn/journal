@@ -1,0 +1,8 @@
+[Details]
+Name = "journal"
+ID = "journal"
+Version = "0.0.0"
+Build = 37
+
+[Migrations]
+fyneDo = true
