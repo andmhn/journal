@@ -32,7 +32,7 @@ android-release: init
 	-rm -f $(temp_apks)
 	-rm -f $(android_aab)
 	@read -p "Enter KeyStore Password : " STORE_PASS; \
-		fyne release -os android -app-id com.example.myapp -app-version 1.0 -app-build 1 -icon icon.png  --keystore $(keystore_file) --key-name $(key_alias) --keystore-pass $$STORE_PASS; \
+		fyne release -os android -app-id com.github.andmhn.journal -app-version 1.0 -app-build 1 -icon icon.png  --keystore $(keystore_file) --key-name $(key_alias) --keystore-pass $$STORE_PASS; \
 		mv $(name).aab $(android_aab); \
 		bundletool build-apks --bundle=$(android_aab) --output=$(temp_apks) --ks=$(keystore_file) --ks-key-alias=$(key_alias) --ks-pass=pass:$$STORE_PASS  --mode=universal
 	unzip $(temp_apks)
