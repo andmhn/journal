@@ -32,8 +32,9 @@ java -jar ~/Downloads/bundletool-all-1.18.2.jar "$@"
 
 Generated key
 ================
+``` sh
 keytool -genkeypair -alias key0 -keyalg RSA -keysize 2048 -validity 365 -keystore keystore.jks
-
+```
 
 Build Debug
 ===============
