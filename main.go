@@ -1,52 +1,98 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
-var a = app.NewWithID("journal")
-var w = a.NewWindow("journal")
-
-func main() {
-	w.Resize(fyne.NewSize(400, 200))
-	w.SetMaster()
-
-	w.SetContent(makeUI())
-	w.ShowAndRun()
-
-	tidyUp()
+type App struct {
+	pref fyne.Preferences
 }
 
-func makeUI() *fyne.Container {
-	count_widget := widget.NewLabel("0")
+func (app *App) GetCount() string {
+	return app.pref.String("count")
+}
+
+func (app *App) Increment() string {
+	value, _ := strconv.Atoi(app.GetCount())
+	value++
+	countStr := strconv.Itoa(value)
+	app.SetCount(countStr)
+	return countStr
+}
+
+func (app *App) SetCount(value string) {
+	app.pref.SetString("count", value)
+}
+
+type UI struct {
+	app    App
+	window fyne.Window
+}
+
+func (ui *UI) makeUI() *fyne.Container {
+	app := ui.app
+	count_widget := widget.NewLabel(app.pref.String("count"))
 	count_button := widget.NewButton("count", func() {
-		count, _ := strconv.Atoi(count_widget.Text)
-		count++
-		count_widget.SetText(strconv.Itoa(count))
+		ui.change_count(count_widget, app.Increment())
 	})
 
 	reset_button := widget.NewButton("reset", func() {
-		count_widget.SetText("0")
+		ui.change_count(count_widget, "0")
 	})
 
 	buttons := container.NewHBox(count_button, reset_button)
 
-	pop_up := widget.NewButton("Open new", func() {
-		w3 := a.NewWindow("Third")
-		w3.Resize(fyne.NewSize(300, 100))
-		w3.SetContent(widget.NewLabel("Third"))
-		w3.Show()
-	})
+	///-----------------------------------
+	entry := newNumericalEntry()
 
-	return container.NewVBox(buttons, count_widget, pop_up, widget.NewEntry())
+	submitEntry := func() {
+		if entry.Text != "" {
+			ui.change_count(count_widget, entry.Text)
+			entry.SetText("")
+		}
+	}
+	set_button := widget.NewButton("set count", submitEntry)
+
+	set_button.Disable()
+	entry.OnSubmitted = func(s string) {
+		submitEntry()
+	}
+	entry.OnChanged = func(s string) {
+		if s != "" {
+			set_button.Enable()
+		} else {
+			set_button.Disable()
+		}
+	}
+
+	entry_container := container.NewVBox(entry, set_button)
+	///---------------------------------
+
+	return container.NewVBox(buttons, count_widget, entry_container)
 }
 
-func tidyUp() {
-	fmt.Println("Exited")
+func (ui *UI) change_count(count_widget *widget.Label, countStr string) {
+	count_widget.SetText(countStr)
+	ui.app.SetCount(countStr)
+}
+
+func main() {
+	var journalApp = app.NewWithID("journal")
+	var window = journalApp.NewWindow("journal")
+	app := &App{pref: journalApp.Preferences()}
+	ui := &UI{app: *app, window: window}
+
+	window.Resize(fyne.NewSize(400, 200))
+	window.SetMaster()
+	window.SetContent(ui.makeUI())
+
+	journalApp.Settings().SetTheme(theme.DarkTheme())
+
+	window.ShowAndRun()
 }
